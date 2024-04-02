@@ -14,6 +14,7 @@ import android.view.KeyEvent
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.google.zxing.client.android.Intents
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Prepare webview
         webview = WebView(this)
         webview.webViewClient = MyWebViewClient(::shouldOverrideUrlLoading)
         // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
@@ -53,8 +55,14 @@ class MainActivity : ComponentActivity() {
         }
         webview.settings.javaScriptEnabled = true
         (webview.webViewClient as MyWebViewClient).onLoadJavascript = onLoadJavascript()
-        webview.loadUrl((if (isNetworkAvailable()) siteUrl else offlineUrl).toString())
-        setContentView(webview)
+
+        // Show one or the other
+        if (isNetworkAvailable()) {
+            webview.loadUrl(siteUrl.toString())
+            setContentView(webview)
+        } else {
+            setContentView(R.layout.offline_layout)
+        }
         registerNetworkListener()
     }
 
@@ -207,28 +215,28 @@ class MainActivity : ComponentActivity() {
         val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         networkCallback = object : NetworkCallback() {
             override fun onAvailable(network: Network) {
-                runOnUiThread { onNetworkChange(network, true)  }
+                runOnUiThread { setOnline(true)  }
             }
             override fun onLost(network: Network) {
-                runOnUiThread { onNetworkChange(network, false) }
+                runOnUiThread { setOnline(false) }
             }
         }
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
-    private fun onNetworkChange(network: Network, available: Boolean) {
-        val url = webview.getUrl()
-        if (available) {
-            if (url == null || url.startsWith("file:///android_asset")) {
-                val lastUrl = (webview.webViewClient as MyWebViewClient).lastUrl
-                Log.d("MainActivity", "Network back, loading ${lastUrl}")
-                webview.loadUrl(lastUrl ?: siteUrl.toString())
+    private fun setOnline(online: Boolean) {
+        if (online) {
+            Log.d("MainActivity", "Network back, showing and reloading page")
+            setContentView(webview)
+            // TODO navigate to avoid reloading, and only reload when necessary
+            if (webview.getUrl() == null) {
+                webview.loadUrl(siteUrl.toString())
+            } else {
+                webview.reload()
             }
         } else {
-            if (url == null || url != offlineUrl.toString()) {
-                Log.d("MainActivity", "Network gone, loading offline placeholder")
-                webview.loadUrl(offlineUrl.toString())
-            }
+            Log.d("MainActivity", "Network gone, showing offline layout")
+            setContentView(R.layout.offline_layout)
         }
     }
 
@@ -263,9 +271,7 @@ class MainActivity : ComponentActivity() {
 
         override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
             super.doUpdateVisitedHistory(view, url, isReload)
-            if (url != null && !url.startsWith("file:///android_asset")) {
-                lastUrl = url
-            }
+            lastUrl = url
         }
     }
 }

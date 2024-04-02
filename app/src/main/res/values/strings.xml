@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">Questionmark</string>
     <string name="scan_product_barcode">Scan product barcode</string>
-    <string name="scan_cancelled">Cancelled scan due to missing camera permission</string>
+    <string name="scan_cancelled">Geen permissie voor de camera, scannen afgebroken</string>
     <string name="scan_success">Looking up %1$s</string>
     <string name="scan_template_missing">Unexpected empty returnUrlTemplate</string>
+    <string name="offline_desc_1">Duurzaam en gezond eten?</string>
+    <string name="offline_desc_2">Wij helpen je kiezen!</string>
+    <string name="offline_state">Offline</string>
+    <string name="offline_action_1">Verbind met WiFi of data</string>
+    <string name="offline_action_2">om deze app te gebruiken.</string>
 </resources>
