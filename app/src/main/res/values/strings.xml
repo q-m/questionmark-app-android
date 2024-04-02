@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Questionmark</string>
+    <string name="scan_product_barcode">Scan product barcode</string>
+    <string name="scan_cancelled">Cancelled scan due to missing camera permission</string>
+    <string name="scan_success">Looking up %1$s</string>
+    <string name="scan_template_missing">Unexpected empty returnUrlTemplate</string>
 </resources>

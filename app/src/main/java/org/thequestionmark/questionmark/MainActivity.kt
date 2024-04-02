@@ -23,6 +23,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 import java.net.URL
 
+// TODO no offline page in navigation history
 
 class MainActivity : ComponentActivity() {
 
@@ -160,7 +161,7 @@ class MainActivity : ComponentActivity() {
     private fun openScan(context: Context, returnUrlTemplate: String?) {
         val options: ScanOptions = ScanOptions()
         options.setDesiredBarcodeFormats(ScanOptions.EAN_8, ScanOptions.EAN_13, ScanOptions.UPC_A, ScanOptions.UPC_E)
-        options.setPrompt("Scan product barcode")
+        options.setPrompt(getString(R.string.scan_product_barcode))
         options.setOrientationLocked(false)
         options.setBeepEnabled(false)
 
@@ -178,21 +179,21 @@ class MainActivity : ComponentActivity() {
             if (originalIntent == null) {
                 Log.d("MainActivity", "Cancelled scan")
             } else if (originalIntent.hasExtra(Intents.Scan.MISSING_CAMERA_PERMISSION)) {
-                logAndToast("Cancelled scan due to missing camera permission")
+                logAndToast(getString(R.string.scan_cancelled))
             }
         } else {
             // Be a bit safer and only keep numbers (XSS risk).
             val barcode = result.contents.replace(Regex("\\D"), "")
             // Get return url template
             if (returnUrlTemplate != null) {
-                logAndToast("Looking up $barcode")
+                logAndToast(getString(R.string.scan_success, barcode))
                 // Navigate webview (must be absolute URL)
                 val returnUrl = returnUrlTemplate.replace("{CODE}", barcode)
                 val absReturnUrl = URL(siteUrl, returnUrl).toString()
                 Log.d("MainActivity", "Navigating to: $absReturnUrl")
                 webview.loadUrl(absReturnUrl)
             } else {
-                logAndToast("Unexpected empty returnUrlTemplate")
+                logAndToast(getString(R.string.scan_template_missing))
             }
         }
     }
@@ -219,10 +220,13 @@ class MainActivity : ComponentActivity() {
         val url = webview.getUrl()
         if (available) {
             if (url == null || url.startsWith("file:///android_asset")) {
-                webview.loadUrl(siteUrl.toString()) // TODO remember last visited URL
+                val lastUrl = (webview.webViewClient as MyWebViewClient).lastUrl
+                Log.d("MainActivity", "Network back, loading ${lastUrl}")
+                webview.loadUrl(lastUrl ?: siteUrl.toString())
             }
         } else {
             if (url == null || url != offlineUrl.toString()) {
+                Log.d("MainActivity", "Network gone, loading offline placeholder")
                 webview.loadUrl(offlineUrl.toString())
             }
         }
@@ -238,7 +242,8 @@ class MainActivity : ComponentActivity() {
 
     private class MyWebViewClient : WebViewClient {
 
-        var onLoadJavascript: String? = null
+        var onLoadJavascript: String? = null  // Javascript code to execute on each loaded page
+        var lastUrl: String? = null           // Last loaded URL
         private val callback: (view: WebView?, request: WebResourceRequest?) -> Boolean
 
         constructor(callback: (view: WebView?, request: WebResourceRequest?) -> Boolean) : super() {
@@ -253,6 +258,13 @@ class MainActivity : ComponentActivity() {
             super.onPageFinished(view, url)
             if (view != null && onLoadJavascript != null) {
                 view.evaluateJavascript(onLoadJavascript!!, null)
+            }
+        }
+
+        override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+            super.doUpdateVisitedHistory(view, url, isReload)
+            if (url != null && !url.startsWith("file:///android_asset")) {
+                lastUrl = url
             }
         }
     }
