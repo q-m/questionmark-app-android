@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "org.thequestionmark.questionmark"
-        minSdk = 31 // can be 24 if we don't runOnUiThread
+        minSdk = 26
         targetSdk = 34
         versionCode = 30101
         versionName = "3.1.1"
