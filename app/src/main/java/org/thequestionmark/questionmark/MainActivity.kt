@@ -1,7 +1,6 @@
 package org.thequestionmark.questionmark
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.ConnectivityManager
@@ -14,7 +13,6 @@ import android.view.KeyEvent
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.google.zxing.client.android.Intents
@@ -23,8 +21,6 @@ import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 import java.net.URL
-
-// TODO no offline page in navigation history
 
 class MainActivity : ComponentActivity() {
 
@@ -36,8 +32,6 @@ class MainActivity : ComponentActivity() {
         "/index-app", "/lookup", "/search", "/404", "/contact", "/over-ons",
         "/categories", "/categories/*", "/products/*"
     )
-    // Local page to load when offline
-    private val offlineUrl = URL("file:///android_asset/offline.html")
 
     private lateinit var returnUrlTemplate: String
     private lateinit var webview: WebView
@@ -88,6 +82,7 @@ class MainActivity : ComponentActivity() {
         ))
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         // open local URLs in the webview
         if (isLocal(request)) return false
@@ -96,7 +91,7 @@ class MainActivity : ComponentActivity() {
         if (request?.url?.scheme == "app") {
             // initiate barcode scan
             if (request.url.host == "mobile-scan") {
-                openScan(view!!.context, request.url.getQueryParameter("ret"))
+                openScan(request.url.getQueryParameter("ret"))
             } else {
                 // ignore unrecognized app action
                 Log.w("MainActivity", "Unrecognized app action: " + request.url.toString())
@@ -105,7 +100,7 @@ class MainActivity : ComponentActivity() {
         }
 
         // open in external browser
-        openExternal(view!!.context, request)
+        openExternal(request)
         return true
 
     }
@@ -113,8 +108,8 @@ class MainActivity : ComponentActivity() {
     private fun isLocal(request: WebResourceRequest?): Boolean {
         // NOTE keep in sync with onLoadJavascript()
         // local is either host-relative, or on our own domain
-        if (request?.url?.host != null && request.url.host != siteUrl.host) return false;
-        if (request?.url?.port != null && request.url.port != siteUrl.port) return false;
+        if (request?.url?.host != null && request.url.host != siteUrl.host) return false
+        if (request?.url?.port != null && request.url.port != siteUrl.port) return false
         // local must also start with one of the whitelisted paths
         // path must be equal, or if path ends with '*' anything is allowed there
         val isLocalPath = localPaths.any { path ->
@@ -124,7 +119,7 @@ class MainActivity : ComponentActivity() {
                 request?.url?.path == path
             }
         }
-        return isLocalPath;
+        return isLocalPath
     }
 
     private fun onLoadJavascript(): String {
@@ -158,16 +153,16 @@ class MainActivity : ComponentActivity() {
         """.trimIndent()
     }
 
-    private fun openExternal(context: Context, request: WebResourceRequest?) {
+    private fun openExternal(request: WebResourceRequest?) {
         Intent(Intent.ACTION_VIEW, request?.url).apply {
             startActivity(this)
         }
     }
 
-    private val barcodeLauncher = registerForActivityResult<ScanOptions, ScanIntentResult>(ScanContract(), ::onScanResult)
+    private val barcodeLauncher = registerForActivityResult(ScanContract(), ::onScanResult)
 
-    private fun openScan(context: Context, returnUrlTemplate: String?) {
-        val options: ScanOptions = ScanOptions()
+    private fun openScan(returnUrlTemplate: String?) {
+        val options = ScanOptions()
         options.setDesiredBarcodeFormats(ScanOptions.EAN_8, ScanOptions.EAN_13, ScanOptions.UPC_A, ScanOptions.UPC_E)
         options.setPrompt(getString(R.string.scan_product_barcode))
         options.setOrientationLocked(false)
