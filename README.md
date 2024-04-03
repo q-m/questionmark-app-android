@@ -29,7 +29,7 @@ From the command-line, you need a [Java Development Kit](https://openjdk.org/). 
 You may need the Android command-line tools as well. To produce a debug build, run:
 
 ```
-./gradlew assembleDebug
+./gradlew packageDebug
 ```
 
 to find an APK in `app/build/outputs/apk/debug/app-debug.apk`
@@ -39,7 +39,7 @@ to find an APK in `app/build/outputs/apk/debug/app-debug.apk`
 A Github Action is used to build a release version when a new version is tagged, the resulting
 APK is attached to the Github release, which you can upload to the Google Play Console.
 
-To build a release version locally, run `./gradlew assembleRelease` but you may need to do something with keystores.
+To build a release version locally, run `./gradlew packageRelease` but you may need to do something with keystores.
 
 ## Barcode scanner
 
