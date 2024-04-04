@@ -7,6 +7,8 @@ import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -21,6 +23,7 @@ import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 import org.json.JSONObject
 import java.net.URL
+
 
 class MainActivity : ComponentActivity() {
 
@@ -73,15 +76,11 @@ class MainActivity : ComponentActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
+    @Suppress("DEPRECATION")
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        val nw = connectivityManager.activeNetwork ?: return false
-        val actNw = connectivityManager.getNetworkCapabilities(nw)
-        return actNw != null && (actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || actNw.hasTransport(
-            NetworkCapabilities.TRANSPORT_CELLULAR
-        ) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || actNw.hasTransport(
-            NetworkCapabilities.TRANSPORT_VPN
-        ))
+        val ni = connectivityManager.activeNetworkInfo ?: return false
+        return ni.isConnected
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -218,7 +217,14 @@ class MainActivity : ComponentActivity() {
                 runOnUiThread { setOnline(false) }
             }
         }
-        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        // https://stackoverflow.com/a/58468010
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        } else {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build()
+            connectivityManager.registerNetworkCallback(request, networkCallback)
+        }
     }
 
     private fun setOnline(online: Boolean) {
