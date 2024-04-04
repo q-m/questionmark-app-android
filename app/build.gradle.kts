@@ -11,8 +11,8 @@ android {
         applicationId = "org.thequestionmark.questionmark"
         minSdk = 21
         targetSdk = 34
-        versionCode = 30102
-        versionName = "3.1.2"
+        versionCode = 30103
+        versionName = "3.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
