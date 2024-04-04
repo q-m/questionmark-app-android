@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var returnUrlTemplate: String
     private lateinit var webview: WebView
+    private lateinit var webviewClient: MyWebViewClient
     private lateinit var networkCallback: NetworkCallback
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -42,13 +43,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Prepare webview
         webview = WebView(this)
-        webview.webViewClient = MyWebViewClient(::shouldOverrideUrlLoading)
+        webviewClient = MyWebViewClient(::shouldOverrideUrlLoading)
+        webview.webViewClient = webviewClient
         // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
         webview.settings.javaScriptEnabled = true
-        (webview.webViewClient as MyWebViewClient).onLoadJavascript = onLoadJavascript()
+        webviewClient.onLoadJavascript = onLoadJavascript()
 
         // Show one or the other
         if (isNetworkAvailable()) {
