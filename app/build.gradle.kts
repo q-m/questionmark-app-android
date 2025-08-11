@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "org.thequestionmark.questionmark"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "org.thequestionmark.questionmark"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 30103
         versionName = "3.1.3"
 
